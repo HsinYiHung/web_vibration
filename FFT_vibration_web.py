@@ -39,3 +39,8 @@ for x in range(data.shape[0]):
     for y in range(data.shape[1]):
         dataFFT[x,y,:] = scipy.fft(data[x,y,:])
 
+dataFFT = np.abs(dataFFT)
+ff = np.fft.fftfreq(10002, 0.001)
+plt.figure()
+plt.plot(ff[ff > 0], np.mean(dataFFT, axis=0)[ff > 0])
+plt.savefig(fname.replace('.avi', '_fft.png'))
