@@ -1,11 +1,12 @@
 import os, glob, numpy as np, matplotlib.pyplot as plt, scipy
 import imageio
 from moviepy.editor import VideoFileClip
-from tqdm import tqdm_notebook as tqdm
+
 
 ### Load the file
 
-freq = 200
+freq = 400
+threshold = 20
 
 fname = glob.glob('web_{}hz*.avi'.format(freq))
 fname = [x for x in fname if not 'spider' in x]
@@ -28,18 +29,17 @@ else:
         data[:, :, idx] = np.mean(frame, axis = 2)
         idx += 1
     np.save(fname + '.npy', data)
+    
 
+### Extract the web index
+
+web_idx = data[:, :, 0]> threshold
+res = np.where(web_idx == True)
 
 
 ### Apply FFT to data
+dataFFT = np.abs(scipy.fft(data[res[0], res[1], :]))
 
-#The kernel dies...
-dataFFT = np.zeros(data.shape, dtype=np.complex64)
-for x in range(data.shape[0]):
-    for y in range(data.shape[1]):
-        dataFFT[x,y,:] = scipy.fft(data[x,y,:])
-
-dataFFT = np.abs(dataFFT)
 ff = np.fft.fftfreq(10002, 0.001)
 plt.figure()
 plt.plot(ff[ff > 0], np.mean(dataFFT, axis=0)[ff > 0])
