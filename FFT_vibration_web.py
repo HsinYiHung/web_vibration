@@ -5,7 +5,7 @@ from moviepy.editor import VideoFileClip
 
 ### Load the file
 
-freq = 400
+freq = 300
 threshold = 20
 
 fname = glob.glob('web_{}hz*.avi'.format(freq))
@@ -44,3 +44,4 @@ ff = np.fft.fftfreq(10002, 0.001)
 plt.figure()
 plt.plot(ff[ff > 0], np.mean(dataFFT, axis=0)[ff > 0])
 plt.savefig(fname.replace('.avi', '_fft.png'))
+
