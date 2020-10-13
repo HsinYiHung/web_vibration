@@ -36,21 +36,21 @@ data = data[:, :, :-1]
 web_idx = data[:, :, 0]> threshold
 res = np.where(web_idx == True)
 
-f_spec = np.zeros((4000, 61))
+f_spec = np.zeros((6000, len(range(6000, 10002, 100))))
 c=0
-for t in range(4000, 10002, 100):
+for t in range(6000, 10002, 100):
 
-    dataFFT = np.abs(scipy.fft(data[res[0], res[1], (t-4000):t]))
+    dataFFT = np.abs(scipy.fft(data[res[0], res[1], (t-6000):t]))
     f_spec[:,c] = np.mean(np.abs(dataFFT), axis =0)
     c += 1
 f_spec = f_spec[1:, :]    
 ff = np.fft.fftfreq(dataFFT.shape[1], 0.001)
-t= [i for i in range(4000, 10002, 100)]
+t= [i for i in range(6000, 10002, 100)]
 t = np.array(t) 
 
 
-f_idx =np.where((ff>= 200) & (ff<=300))
-#f_idx =np.where((ff>= 0) )
+#f_idx =np.where((ff>= 350) & (ff<=500))
+f_idx =np.where((ff>= 0) )
 plt.pcolormesh(t, ff[f_idx], f_spec[f_idx])
 plt.colorbar()
 

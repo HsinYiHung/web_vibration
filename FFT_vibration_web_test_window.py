@@ -31,6 +31,10 @@ else:
     np.save(fname + '.npy', data)
     
 data = data[:, :, :-1]
+
+#Reverse the data to do the backward FFT
+#data = data[:, :, ::-1]
+
 ### Extract the web index
 
 web_idx = data[:, :, 0]> threshold
@@ -68,8 +72,8 @@ for t in range(1000, 10002, 1000):
     ff = np.fft.fftfreq(dataFFT.shape[1], 0.001)
     
     # Get the SNR during 200-400Hz
-    idx_i = (np.abs(ff - 200)).argmin()
-    idx_e =  (np.abs(ff - 400)).argmin()
+    idx_i = (np.abs(ff - (freq-100))).argmin()
+    idx_e =  (np.abs(ff -  (freq+100))).argmin()
     temp = np.mean(dataFFT, axis = 0)[idx_i:idx_e]
     snr = np.append(snr, signaltonoise(temp))
     
@@ -89,8 +93,9 @@ for t in range(1000, 10002, 1000):
 
 
 
+
 dataFFT = np.abs(scipy.fft(data[res[0], res[1], :]))
-ff = np.fft.fftfreq(dataFFT.shape[1], 0.001)
+#ff = np.fft.fftfreq(dataFFT.shape[1], 0.001)
     
 # Get the SNR during 200-400Hz
 idx_i = (np.abs(ff - 200)).argmin()
@@ -129,3 +134,9 @@ plt.figure()
 plt.scatter(xx, snr2_mean, c=label)
 plt.figure()
 plt.scatter(xx, snr2_var, c=label)
+
+
+
+plt.figure()
+plt.plot(temp)
+plt.plot(temp2)
