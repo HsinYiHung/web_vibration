@@ -1,7 +1,9 @@
-import os, glob, numpy as np, matplotlib.pyplot as plt, scipy
+import os, glob, numpy as np, scipy
 import imageio
 from moviepy.editor import VideoFileClip
 import math
+import cv2
+from cv2 import VideoWriter_fourcc
 ### Load the file
 
 freq = 200
@@ -32,18 +34,20 @@ else:
 data = data[:, :, :-1]
 ### Extract the web index
 
-snr = np.zeros((data.shape[0], data.shape[1]))
+#snr = np.zeros((data.shape[0], data.shape[1]))
 web_idx = data[:, :, 0]> threshold
 res = np.where(web_idx == True)
-dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], :]))
+#dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], :]))
 
-dataFFT =  np.empty((1024, 1024, 10001))
-dataFFT[:] = np.nan
-dataFFT[res[0], res[1]] = dataFFT_web
-ff = np.fft.fftfreq(dataFFT_web.shape[1], 0.001)
-
-step =32
+step =16
 images =[]
+img = (data[:, :, 0]>20).astype(float)
+img = img *255
+img = img.astype(np.uint8)
+grayImage = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+alpha = 0.8
+beta = ( 1.0 - alpha );
+
 for t in range(1000, 10002, 100):
     dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-1000):t]))
     dataFFT =  np.empty((1024, 1024, 1000))
@@ -54,9 +58,9 @@ for t in range(1000, 10002, 100):
     for x_idx in range(0, 1025, step):
         for y_idx in range(0, 1025, step):
             means = np.nanmean(np.nanmean(dataFFT[x_idx: (x_idx + step),
-                                              y_idx: (y_idx + step), (t-1000):t], axis=0), axis=0)
+                                              y_idx: (y_idx + step), :], axis=0), axis=0)
             if math.isnan(means[0]):
-                snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
+                #snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
                 continue
             idx_i = (np.abs(ff - (freq-100))).argmin()
             idx_e =  (np.abs(ff - (freq+100))).argmin()
@@ -66,17 +70,21 @@ for t in range(1000, 10002, 100):
             temp2.remove(temp.max())
             temp2 = np.array(temp2)
             snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = temp2_max/temp2.mean()
-    img = plt.imshow(data[:, :, 0]>20, cmap='gray')
-    plt.imshow(snr, cmap='hot', alpha=0.7)
-    plt.colorbar()
-
-    plt.close(img)
-    images.append()
-
-
+    SNR = snr/snr.max()*255
+    SNR = SNR.astype(np.uint8)
+    img2 = cv2.applyColorMap(SNR, cv2.COLORMAP_HOT)
+    dst = cv2.addWeighted( img2, alpha, grayImage, beta, 0.0)
+    
+    images.append(dst)
 
 
-plt.imshow(data[:, :, 0]>20, cmap='gray') # interpolation='none'
-img = plt.imshow(data[:, :, 0]>20, cmap='gray')
-plt.imshow(snr, cmap='hot', alpha=0.7)
-plt.colorbar()
+
+
+fourcc = VideoWriter_fourcc(*'MP42')
+video=cv2.VideoWriter('300_snr_threshold20_grid16.avi',fourcc,1,(1024,1024))
+
+for j in range(0,len(images)):
+    video.write(images[j])
+
+cv2.destroyAllWindows()
+video.release()
