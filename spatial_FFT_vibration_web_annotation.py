@@ -11,7 +11,7 @@ from cv2 import VideoWriter_fourcc
 
 freq = 200
 
-filename = glob.glob('web_{}hz*.xyt.npy.txt'.format(freq))
+filename = glob.glob('web_300hz-007.xyt.npy.txt'.format(freq))
 annotations = loadAnnotations(filename[0])
 
 lines = annotations[0][3]
@@ -88,10 +88,11 @@ for t in range(1000, 10002, 100):
     Low_freq[:, :, c] = low_freq
     c=c+1
 
+print('SNR max = ' + SNR.max())
 SNR = SNR/SNR.max()*255
 SNR = SNR.astype(np.uint8)
 
-print(Low_freq.max())
+print('Low freq max = ' + Low_freq.max())
 Low_freq = Low_freq/Low_freq.max()*255
 Low_freq = Low_freq.astype(np.uint8)
 for j in range(0, 91):
