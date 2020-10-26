@@ -66,6 +66,7 @@ peak = None
 var = None
 mean = None
     
+#for t in range(1000, 10002, 1000):
 for t in range(1000, 10002, 1000):
 
     dataFFT = np.abs(scipy.fft(data[res[0], res[1], 0:t]))
@@ -126,7 +127,7 @@ mean = np.delete(mean, 0)
 
 label = [1]*(len(snr)-1)
 label.append(0)
-xx = [str(i) for i in range(1000, 10002, 1000)]
+xx = [str(i) for i in range(1000, 10002, 10002)]
 xx.append('10001')
 plt.figure()
 plt.scatter(xx, snr, c=label)
