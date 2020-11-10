@@ -12,7 +12,20 @@ from cv2 import VideoWriter_fourcc
 freq = 200
 
 filename = glob.glob('web_300hz-007.xyt.npy.txt'.format(freq))
+annotations = loadAnnotations(filename[0])
 
+lines = annotations[0][3]
+points = annotations[0][1]
+
+webmask = np.full((1024, 1024), False, dtype=np.bool)
+for line in lines:
+    rr, cc, val = skimage.draw.line_aa(line[0], line[1], line[2], line[3])
+    webmask[rr, cc] = True
+    
+for point in points:
+    webmask[point[0], point[1]] = True
+webmask_origin = webmask
+#webmask = skimage.morphology.dilation(webmask, square(11))
 
 fname = glob.glob('web_{}hz*.avi'.format(freq))
 fname = [x for x in fname if not 'spider' in x]
@@ -36,48 +49,13 @@ else:
     np.save(fname + '.npy', data)
     
 data = data[:, :, :-1]
-
-
-### Extract the hub
-threshold = 180
-hub_idx = data[:, :, 0] > threshold
-res = np.where(hub_idx == True)
-res_null = np.where(hub_idx == False)
-data[res_null[0], res_null[1], :] =0
-
-
-### Subtract the hub
-#threshold = 180
-#hub_idx = data[:, :, 0] > threshold
-#res = np.where(hub_idx == True)
-#data[res[0], res[1], :] =0
-#del hub_idx
-
-annotations = loadAnnotations(filename[0])
-
-lines = annotations[0][3]
-points = annotations[0][1]
-
-webmask = np.full((1024, 1024), False, dtype=np.bool)
-for line in lines:
-    rr, cc, val = skimage.draw.line_aa(line[0], line[1], line[2], line[3])
-    webmask[rr, cc] = True
-
-for point in points:
-    webmask[point[0], point[1]] = True
-    
-#Get the hub
-webmask = ((webmask) & (hub_idx))
-
-
-webmask_origin = webmask
-webmask = skimage.morphology.dilation(webmask, square(3))
-
+### Extract the web index
 res = np.where(webmask == True)
-res_origin = np.where(webmask_origin==True )
+res_origin = np.where(webmask_origin==True)
 
 
 dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], :]))
+del data
 dataFFT =  np.empty((1024, 1024, 10001))
 dataFFT[:] = np.nan
 dataFFT[res[0], res[1]] = dataFFT_web
@@ -92,16 +70,18 @@ grayImage = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 alpha = 0.8
 beta = ( 1.0 - alpha ); 
 snr = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
-pixel_intensity = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
-maximum = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
-variance = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
+
     
 #### This block is the code for averaging fft alone the line
-for j in range(len(res_origin[0])):
-    x_idx = res_origin[0][j]
-    y_idx = res_origin[1][j]
-    means = np.nanmean(np.nanmean(dataFFT[(x_idx-1): (x_idx + 2),
-                                              (y_idx-1): (y_idx + 2), :], axis=0), axis=0)
+#for j in range(len(res_origin[0])):
+for line in lines:
+    rr, cc, val = skimage.draw.line_aa(line[0], line[1], line[2], line[3])
+    means = np.nanmean(dataFFT[rr,cc, :], axis=0)
+
+    #x_idx = res_origin[0][j]
+    #y_idx = res_origin[1][j]
+    #means = np.nanmean(np.nanmean(dataFFT[(x_idx-5): (x_idx + 6),
+    #                                          (y_idx-5): (y_idx + 6), :], axis=0), axis=0)
     if math.isnan(means[0]):
                 #snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
         continue
@@ -113,15 +93,9 @@ for j in range(len(res_origin[0])):
     temp2_max = temp.max()
     temp2.remove(temp.max())
     temp2 = np.array(temp2)
-    if np.isnan(temp2_max/temp2.var()):
-        continue
-    snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.var()
-    pixel_intensity[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = np.mean(data[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2), :])
-    maximum[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max
-    variance[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2.var()
-    
+    snr[rr, cc] = temp2_max/temp2.mean()
 
-    
+
     #### This block is the code for calculating the snr and low frequency for dilated images
     #idx_i = (np.abs(ff - (freq-100))).argmin()
     #idx_e =  (np.abs(ff - (freq+100))).argmin()
@@ -135,46 +109,19 @@ for j in range(len(res_origin[0])):
     #snr = np.nan_to_num(snr, 1)
     #snr[np.where(snr>1)] =1
     #low_freq[res[0], res[1]] = np.mean(dataFFT_web[:, 1:1000], axis =1)
-
-### Plot the snr_plot vs pixel intensity
-snr_2 = snr[res[0], res[1]]
-pixel_intensity = pixel_intensity[res[0], res[1]]
-from scipy import stats
-import matplotlib.pyplot as plt
-r, p = stats.pearsonr(snr_2,pixel_intensity)
-plt.figure()
-plt.scatter(snr_2,pixel_intensity, s=0.1)
-plt.show()
-
     
-snr_plot = snr
-#snr_plot[np.where(snr_plot>1)] =1
+SNR = snr
 
-print('SNR max = ' + str(snr.max()))
-snr_plot = snr_plot/snr_plot.max()*255
-snr_plot = snr_plot.astype(np.uint8)
+print('SNR max = ' + str(SNR.max()))
+SNR = SNR/SNR.max()*255
+SNR = SNR.astype(np.uint8)
 
-img3 = cv2.applyColorMap(snr_plot, cv2.COLORMAP_HOT)
+img3 = cv2.applyColorMap(SNR, cv2.COLORMAP_HOT)
 dst3 = cv2.addWeighted( img3, alpha, grayImage, beta, 0.0)
 
 # Filename 
-filename = '200_snr_mean_webannotation.jpg'
+filename = '200_snr_segment_webannotation.jpg'
   
 # Using cv2.imwrite() method 
 # Saving the image 
 cv2.imwrite(filename, dst3)
-
-plt.figure()
-plt.imshow(variance, cmap = 'hot')
-plt.clim(0, 5000)
-plt.colorbar()
-
-plt.figure()
-plt.imshow(maximum, cmap = 'hot')
-plt.clim(0, 1000)
-plt.colorbar()
-
-test = np.mean(dataFFT[res[0], res[1], :], axis =0)
-plt.figure()
-plt.plot(ff[ff > 0], test[ff > 0])
-plt.show()

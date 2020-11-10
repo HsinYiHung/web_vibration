@@ -5,7 +5,7 @@ from moviepy.editor import VideoFileClip
 import math
 ### Load the file
 
-freq = 500
+freq = 200
 threshold = 20
 
 fname = glob.glob('web_{}hz*.avi'.format(freq))
@@ -43,7 +43,7 @@ dataFFT[:] = np.nan
 dataFFT[res[0], res[1]] = dataFFT_web
 ff = np.fft.fftfreq(dataFFT_web.shape[1], 0.001)
 
-step =32
+step =16
 
 for x_idx in range(0, 1025, step):
     for y_idx in range(0, 1025, step):
@@ -59,7 +59,7 @@ for x_idx in range(0, 1025, step):
         temp2_max = temp.max()
         temp2.remove(temp.max())
         temp2 = np.array(temp2)
-        snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = temp2_max/temp2.mean()
+        snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = temp2_max/temp2.var()
 
 
 

@@ -50,7 +50,7 @@ beta = ( 1.0 - alpha );
 SNR = np.zeros((data.shape[0], data.shape[1], 91))
 Low_freq = np.zeros((data.shape[0], data.shape[1], 91))
 c=0
-for t in range(1000, 10002, 100):
+for t in range(1000, 1002, 100):
     dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-1000):t]))
     dataFFT =  np.empty((1024, 1024, 1000))
     dataFFT[:] = np.nan
@@ -73,7 +73,7 @@ for t in range(1000, 10002, 100):
             temp2_max = temp.max()
             temp2.remove(temp.max())
             temp2 = np.array(temp2)
-            snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = temp2_max/temp2.mean()
+            snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = temp2_max/temp2.var()
     SNR[:, :, c] = snr
     Low_freq[:, :, c] = low_freq
     c=c+1
