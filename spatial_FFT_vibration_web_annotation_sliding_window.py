@@ -90,7 +90,7 @@ for t in range(1000, 1002, 100):
         temp2_max = temp.max()
         temp2.remove(temp.max())
         temp2 = np.array(temp2)
-        snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.mean()
+        snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.var()
         #snr[np.where(snr>1)] =1
 
     #### This block is the code for calculating the snr and low frequency for dilated images
