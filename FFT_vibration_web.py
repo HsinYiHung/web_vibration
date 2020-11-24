@@ -11,6 +11,8 @@ threshold = 20
 fname = glob.glob('web_{}hz*.avi'.format(freq))
 fname = [x for x in fname if not 'spider' in x]
 fname = fname[0]
+fname = 'video/web_flies_1-013.avi'
+
 
 fnameFFT = fname + '.fft.npy'
 
@@ -40,7 +42,7 @@ res = np.where(web_idx == True)
 ### Apply FFT to data
 dataFFT = np.abs(scipy.fft(data[res[0], res[1], :]))
 
-ff = np.fft.fftfreq(10002, 0.001)
+ff = np.fft.fftfreq(dataFFT.shape[1], 0.001)
 plt.figure()
 plt.plot(ff[ff > 0], np.mean(dataFFT, axis=0)[ff > 0])
 plt.savefig(fname.replace('.avi', '_fft.png'))

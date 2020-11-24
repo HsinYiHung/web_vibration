@@ -7,9 +7,9 @@ from moviepy.editor import VideoFileClip
 import math
 import cv2
 from cv2 import VideoWriter_fourcc
+from scipy import stats
 
-
-freq = 200
+freq = 400
 
 filename = glob.glob('web_300hz-007.xyt.npy.txt'.format(freq))
 annotations = loadAnnotations(filename[0])
@@ -61,10 +61,10 @@ img = img.astype(np.uint8)
 grayImage = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 alpha = 0.8
 beta = ( 1.0 - alpha );
-SNR = np.zeros((data.shape[0], data.shape[1], 91))
+snr_matrix = np.zeros((data.shape[0], data.shape[1], 91))
 Low_freq = np.zeros((data.shape[0], data.shape[1], 91))
 c=0
-for t in range(1000, 1002, 100):
+for t in range(1000, 10002, 100):
     dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-1000):t]))
     dataFFT =  np.empty((1024, 1024, 1000))
     dataFFT[:] = np.nan
@@ -83,16 +83,21 @@ for t in range(1000, 1002, 100):
                 #snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
             continue
         low_freq[(x_idx-1): (x_idx + 2), (y_idx-1): (y_idx + 2)] = np.mean(means[1:100])
-        idx_i = (np.abs(ff - (freq-100))).argmin()
-        idx_e =  (np.abs(ff - (freq+100))).argmin()
+        idx_i = (np.abs(ff - (freq-20))).argmin()
+        if freq == 500:
+            idx_e =  (np.abs(ff - (freq))).argmin()
+        else:
+            idx_e =  (np.abs(ff - (freq+20))).argmin()
         temp = means[idx_i:idx_e]
         temp2 = list(temp)
         temp2_max = temp.max()
         temp2.remove(temp.max())
         temp2 = np.array(temp2)
-        snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.var()
-        #snr[np.where(snr>1)] =1
-
+        if np.isnan(temp2_max/temp2.std()):
+            continue
+        snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.std()
+        #exclude the extreme value
+        snr[np.where(snr>100)] =0
     #### This block is the code for calculating the snr and low frequency for dilated images
     #idx_i = (np.abs(ff - (freq-100))).argmin()
     #idx_e =  (np.abs(ff - (freq+100))).argmin()
@@ -108,14 +113,21 @@ for t in range(1000, 1002, 100):
     #snr[np.where(snr>1)] =1
     #low_freq[res[0], res[1]] = np.mean(dataFFT_web[:, 1:1000], axis =1)
     
-    SNR[:, :, c] = snr
+    snr_matrix[:, :, c] = snr
     Low_freq[:, :, c] = low_freq
     c=c+1
 
+snr_std = snr_matrix
+snr_std[np.where(snr_std ==0)] = np.nan
+snr_std = np.nanmean(np.nanmean(snr_std, axis =0), axis =0)
+print('snr mean = ' + str(np.nanmean(snr_std)))
+print('snr std = ' + str(stats.sem(snr_std, axis=None)))
 
-print('SNR max = ' + str(SNR.max()))
-SNR = SNR/SNR.max()*255
-SNR = SNR.astype(np.uint8)
+snr_matrix[np.isnan(snr_matrix)]=0
+print('SNR max = ' + str(snr_matrix.max()))
+snr_matrix[np.where(snr_matrix>20)]=20
+snr_matrix = snr_matrix/snr_matrix.max()*255
+snr_matrix = snr_matrix.astype(np.uint8)
 
 print('Low freq max = ' + str(Low_freq.max()))
 Low_freq = Low_freq/Low_freq.max()*255
@@ -128,13 +140,13 @@ for j in range(0, 91):
     
     
 for j in range(0, 91):   
-    img3 = cv2.applyColorMap(SNR[:, :, j], cv2.COLORMAP_HOT)
+    img3 = cv2.applyColorMap(snr_matrix[:, :, j], cv2.COLORMAP_HOT)
     dst3 = cv2.addWeighted( img3, alpha, grayImage, beta, 0.0)
     images_snr.append(dst3)
 
 fourcc = VideoWriter_fourcc(*'MP42')
-video=cv2.VideoWriter('200_lowfreq_mean3_webannotation.avi',fourcc,1,(1024,1024))
-video3=cv2.VideoWriter('200_snr_mean3_webannotation.avi',fourcc,1,(1024,1024))
+video=cv2.VideoWriter('400_lowfreq_square3_webannotation.avi',fourcc,1,(1024,1024))
+video3=cv2.VideoWriter('400_snr_std_square3_webannotation.avi',fourcc,1,(1024,1024))
 
 for j in range(0,len(images_snr)):
     video.write(images_lowfreq[j])
