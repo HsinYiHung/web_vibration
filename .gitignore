@@ -16,3 +16,4 @@ __pycache__/loadAnnotation.cpython-38.pyc
 __pycache__/loadAnnotations.cpython-38.pyc
 *.mp4
 200_snr_square3_webannotation.spydata
+*.npz

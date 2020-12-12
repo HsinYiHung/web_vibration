@@ -6,7 +6,7 @@ from moviepy.editor import VideoFileClip
 ### Load the file
 
 freq = 300
-threshold = 20
+threshold = 250
 
 fname = glob.glob('web_{}hz*.avi'.format(freq))
 fname = [x for x in fname if not 'spider' in x]
@@ -35,6 +35,13 @@ else:
 
 ### Extract the web index
 
+data = data[:, :, :-1]
+if fname == 'video/web_whitenoise-006.avi': 
+    data = data[:, :, 0:8609]
+elif fname == 'video/web_baseline-005.avi': 
+    data = data[:, :, 0:8589]
+    
+
 web_idx = data[:, :, 0]> threshold
 res = np.where(web_idx == True)
 
@@ -45,4 +52,4 @@ dataFFT = np.abs(scipy.fft(data[res[0], res[1], :]))
 ff = np.fft.fftfreq(dataFFT.shape[1], 0.001)
 plt.figure()
 plt.plot(ff[ff > 0], np.mean(dataFFT, axis=0)[ff > 0])
-plt.savefig(fname.replace('.avi', '_fft.png'))
+#plt.savefig(fname.replace('.avi', '_fft.png'))
