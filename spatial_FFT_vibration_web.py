@@ -7,7 +7,7 @@ from moviepy.editor import VideoFileClip
 ### Load the file
 
 freq = 500
-threshold = 20
+threshold = 20 #luminance threshold for a slik
 
 fname = glob.glob('web_{}hz*.avi'.format(freq))
 fname = [x for x in fname if not 'spider' in x]
@@ -18,8 +18,8 @@ fnameFFT = fname + '.fft.npy'
 
 ### Convert the video to python data
 
-if os.path.exists(fname + '.npy'):
-    data = np.load(fname + '.npy')
+if os.path.exists(os.path.exists(fname.replace(".avi", ".xyt") + '.npy')):
+    data = np.load(os.path.exists(fname.replace(".avi", ".xyt") + '.npy'))
 else:
     video = VideoFileClip(fname)
     r = imageio.get_reader(fname)
@@ -29,17 +29,22 @@ else:
     for frame in r.iter_data():
         data[:, :, idx] = np.mean(frame, axis = 2)
         idx += 1
-    np.save(fname + '.npy', data)
+    np.save(os.path.exists(fname.replace(".avi", ".xyt") + '.npy'), data)
     
-data2 = data[:, :, :-1]
+data2 = data[:, :, :-1] ###The last frame is missing in the some recordings
+data = data2
+
 ### Extract the web index
 
-data = data2
+
 snr = np.zeros((data.shape[0], data.shape[1]))
 
 for divide in range(int(np.log2(data.shape[0]))):
+    
+    # Space index: Only extract parts of the web
     space = int(data.shape[0]/2)
     space_idx = np.zeros((data.shape[0], data.shape[1]), dtype=bool) 
+    # Web index: silk above the luminance threshold
     web_idx = data[:, :, 0]> threshold
     for i in range(0, 2):
         for j in range(0,2):

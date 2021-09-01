@@ -9,33 +9,41 @@ import cv2
 from cv2 import VideoWriter_fourcc
 import sys
 
+### Imaging sampling frequency
+sampling_frequency=1000
 
-freq=500
-filename = glob.glob('web_300hz-007.xyt.npy.txt'.format(freq))
+### Load files
+#freq=500
+#filename = glob.glob('web_300hz-007.xyt.npy.txt'.format(freq))
 
+#fname = glob.glob('web_{}hz*.avi'.format(freq))
+#fname = [x for x in fname if not 'spider' in x]
+#fname = fname[0]
+#annotations = loadAnnotations(filename[0])
 
-fname = glob.glob('web_{}hz*.avi'.format(freq))
-fname = [x for x in fname if not 'spider' in x]
-fname = fname[0]
+fname = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey/0814_spider003_spider_prey.avi'
+filename = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.xyt.npy.txt'
 
-fnameFFT = fname + '.fft.npy'
+annotations = loadAnnotations(filename)
+
+fnameFFT = fname.replace(".avi", ".xyt")  + '.fft.npy'
 
 ### Convert the video to python data
 
-if os.path.exists(fname + '.npy'):
-    data = np.load(fname + '.npy')
-else:
-    video = VideoFileClip(fname)
-    r = imageio.get_reader(fname)
+#if os.path.exists(fname.replace(".avi", ".xyt") + '.npy'):
+#    data = np.load(fname.replace(".avi", ".xyt") + '.npy')
+#else:
+video = VideoFileClip(fname)
+r = imageio.get_reader(fname)
     
-    data = np.zeros((video.size[0], video.size[1], video.reader.nframes), dtype=np.uint8)
-    idx = 0
-    for frame in r.iter_data():
-        data[:, :, idx] = np.mean(frame, axis = 2)
-        idx += 1
-    np.save(fname + '.npy', data)
-        
-data = data[:, :, :-1]
+data = np.zeros((video.size[0], video.size[1], video.reader.nframes), dtype=np.uint8)
+idx = 0
+for frame in r.iter_data():
+    data[:, :, idx] = np.mean(frame, axis = 2)
+    idx += 1
+#np.save(fname.replace(".avi", ".xyt") + '.npy', data)
+np.save(filename, data)
+#data = data[:, :, :-1] ###The last frame is missing in the some recordings
     
     
 ### Extract the hub
@@ -53,12 +61,12 @@ data = data[:, :, :-1]
 #data[res[0], res[1], :] =0
 #del hub_idx
     
-annotations = loadAnnotations(filename[0])
+
     
 lines = annotations[0][3]
 points = annotations[0][1]
     
-webmask = np.full((1024, 1024), False, dtype=np.bool)
+webmask = np.full(( data.shape[0],  data.shape[1]), False, dtype=np.bool)
 for line in lines:
     rr, cc, val = skimage.draw.line_aa(line[0], line[1], line[2], line[3])
     webmask[rr, cc] = True
@@ -78,12 +86,12 @@ res_origin = np.where(webmask_origin==True )
     
     
 dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], :]))
-dataFFT =  np.empty((1024, 1024, 10001))
+dataFFT =  np.empty((data.shape[0],  data.shape[1], data.shape[2]))
 dataFFT[:] = np.nan
 dataFFT[res[0], res[1]] = dataFFT_web
-ff = np.fft.fftfreq(dataFFT_web.shape[1], 0.001)
+ff = np.fft.fftfreq(dataFFT_web.shape[1], 1/sampling_frequency)
 
-for freq in range(200, 600, 100):
+for freq in range(10, 100, 100):
 
     images_snr =[]
     images_lowfreq =[]
@@ -108,11 +116,11 @@ for freq in range(200, 600, 100):
                     #snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
             continue
       
-        idx_i = (np.abs(ff - (freq-20))).argmin()
+        idx_i = (np.abs(ff - (freq-2))).argmin()
         if freq == 500:
             idx_e =  (np.abs(ff - (freq))).argmin()
         else:
-            idx_e =  (np.abs(ff - (freq+20))).argmin()
+            idx_e =  (np.abs(ff - (freq+2))).argmin()
         temp = means[idx_i:idx_e]
         temp2 = list(temp)
         temp2_max = temp.max()
@@ -155,10 +163,10 @@ for freq in range(200, 600, 100):
     
     
     # Filename 
-    filename = '500_snr_std_square3_webannotation' +str(int(freq))+'.jpg'
+    filename = fname.replace(".avi", "_snr_std_square3_webannotation_")+str(int(freq-2))+'-'+str(int(freq+2))+'hz.jpg'
     print(str(int(freq))+ ' SNR max = ' + str(snr.max()))
-    snr_plot = snr
-    snr_plot[np.where(snr_plot>15)] =15
+    snr_plot = np.copy(snr)
+    snr_plot[np.where(snr_plot>10)] =10
     plt.figure()
     plt.imshow(grayImage, cmap='gray') # interpolation='none'
     plt.imshow(snr_plot, cmap = 'hot', alpha = alpha)
@@ -185,13 +193,13 @@ for freq in range(200, 600, 100):
     #plt.imshow(grayImage, cmap='gray') # interpolation='none'
     #plt.imshow(standard_d, cmap = 'hot')
     #plt.colorbar()
-    print(str(int(freq))+ ' std mean = ' + str(np.mean(standard_d)*1024*1024/len(res[0])))
+    #print(str(int(freq))+ ' std mean = ' + str(np.mean(standard_d)*1024*1024/len(res[0])))
     
     #plt.figure()
     #plt.imshow(maximum, cmap = 'hot')
     #plt.clim(0, 1000)
     #plt.colorbar()
-    print(str(int(freq))+' maximum mean = ' + str(np.mean(maximum)*1024*1024/len(res[0])))
+    #print(str(int(freq))+' maximum mean = ' + str(np.mean(maximum)*1024*1024/len(res[0])))
     
     
     #test = np.mean(dataFFT[res[0], res[1], :], axis =0)

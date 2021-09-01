@@ -9,15 +9,59 @@ import cv2
 from cv2 import VideoWriter_fourcc
 from scipy import stats
 
-freq = 400
+### Imaging sampling frequency
+sampling_frequency=1000
 
-filename = glob.glob('web_300hz-007.xyt.npy.txt'.format(freq))
-annotations = loadAnnotations(filename[0])
+#Set the frequency window
+freq=20
+
+### Load files
+#freq = 400
+
+#filename = glob.glob('web_300hz-007.xyt.npy.txt'.format(freq))
+#annotations = loadAnnotations(filename[0])
+#fname = glob.glob('web_{}hz*.avi'.format(freq))
+#fname = [x for x in fname if not 'spider' in x]
+#fname = fname[0]
+#fnameFFT = fname + '.fft.npy'
+
+
+#fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey3_top_C001H001S0001.avi'
+#filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey3_top_C001H001S0001.xyt.npy.txt'
+
+#fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0601_spider002_control_air_C001H001S0001.avi'
+#filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0601_spider002_control_air_C001H001S0001.xyt.npy.txt'
+fname = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_spider_prey/0701_spider003_web3_spider_prey.avi'
+filename = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_spider_prey/0701_spider003_web3_spider_prey.xyt.npy.txt'
+
+annotations = loadAnnotations(filename)
+
+fnameFFT = fname.replace(".avi", ".xyt")  + '.fft.npy'
+
 
 lines = annotations[0][3]
 points = annotations[0][1]
 
-webmask = np.full((1024, 1024), False, dtype=np.bool)
+
+### Convert the video to python data
+
+#if os.path.exists(fname.replace(".avi", ".xyt") + '.npy'):
+data = np.load(fname.replace(".avi", ".xyt") + '.npy')
+#else:
+#    video = VideoFileClip(fname)
+#    r = imageio.get_reader(fname)
+
+#    data = np.zeros((video.size[0], video.size[1], video.reader.nframes), dtype=np.uint8)
+#    idx = 0
+#    for frame in r.iter_data():
+#        data[:, :, idx] = np.mean(frame, axis = 2)
+#        idx += 1
+#    np.save(fname.replace(".avi", ".xyt") + '.npy', data)
+    
+#data = data[:, :, :-1]
+
+
+webmask = np.full((data.shape[0],  data.shape[1]), False, dtype=np.bool)
 for line in lines:
     rr, cc, val = skimage.draw.line_aa(line[0], line[1], line[2], line[3])
     webmask[rr, cc] = True
@@ -27,30 +71,9 @@ for point in points:
 webmask_origin = webmask
 webmask = skimage.morphology.dilation(webmask, square(3))
 
-fname = glob.glob('web_{}hz*.avi'.format(freq))
-fname = [x for x in fname if not 'spider' in x]
-fname = fname[0]
 
-fnameFFT = fname + '.fft.npy'
 
-### Convert the video to python data
-
-if os.path.exists(fname + '.npy'):
-    data = np.load(fname + '.npy')
-else:
-    video = VideoFileClip(fname)
-    r = imageio.get_reader(fname)
-
-    data = np.zeros((video.size[0], video.size[1], video.reader.nframes), dtype=np.uint8)
-    idx = 0
-    for frame in r.iter_data():
-        data[:, :, idx] = np.mean(frame, axis = 2)
-        idx += 1
-    np.save(fname + '.npy', data)
-    
-data = data[:, :, :-1]
 ### Extract the web index
-
 res = np.where(webmask == True)
 res_origin = np.where(webmask_origin==True)
 images_snr =[]
@@ -61,12 +84,12 @@ img = img.astype(np.uint8)
 grayImage = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 alpha = 0.8
 beta = ( 1.0 - alpha );
-snr_matrix = np.zeros((data.shape[0], data.shape[1], 91))
-Low_freq = np.zeros((data.shape[0], data.shape[1], 91))
+snr_matrix = np.zeros((data.shape[0], data.shape[1], len(range(1000, data.shape[2], 100))))
+Low_freq = np.zeros((data.shape[0], data.shape[1], len(range(1000, data.shape[2], 100))))
 c=0
-for t in range(1000, 10002, 100):
+for t in range(1000, data.shape[2], 100):
     dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-1000):t]))
-    dataFFT =  np.empty((1024, 1024, 1000))
+    dataFFT =  np.empty((data.shape[0], data.shape[1],1000))
     dataFFT[:] = np.nan
     dataFFT[res[0], res[1]] = dataFFT_web
     ff = np.fft.fftfreq(dataFFT_web.shape[1], 0.001)
@@ -83,11 +106,11 @@ for t in range(1000, 10002, 100):
                 #snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
             continue
         low_freq[(x_idx-1): (x_idx + 2), (y_idx-1): (y_idx + 2)] = np.mean(means[1:100])
-        idx_i = (np.abs(ff - (freq-20))).argmin()
+        idx_i = (np.abs(ff - (freq-2))).argmin()
         if freq == 500:
             idx_e =  (np.abs(ff - (freq))).argmin()
         else:
-            idx_e =  (np.abs(ff - (freq+20))).argmin()
+            idx_e =  (np.abs(ff - (freq+2))).argmin()
         temp = means[idx_i:idx_e]
         temp2 = list(temp)
         temp2_max = temp.max()
@@ -117,7 +140,10 @@ for t in range(1000, 10002, 100):
     Low_freq[:, :, c] = low_freq
     c=c+1
 
-snr_std = snr_matrix
+snr= np.copy(snr_matrix)
+np.save(fname.replace(".avi", "_snr_std_square3_webannotation_")+str(int(freq-2))+'-'+str(int(freq+2))+'hz.npy', snr)
+
+snr_std = np.copy(snr_matrix)
 snr_std[np.where(snr_std ==0)] = np.nan
 snr_std = np.nanmean(np.nanmean(snr_std, axis =0), axis =0)
 print('snr mean = ' + str(np.nanmean(snr_std)))
@@ -132,26 +158,69 @@ snr_matrix = snr_matrix.astype(np.uint8)
 print('Low freq max = ' + str(Low_freq.max()))
 Low_freq = Low_freq/Low_freq.max()*255
 Low_freq = Low_freq.astype(np.uint8)
-for j in range(0, 91):
-    img2 = cv2.applyColorMap(Low_freq[:, :, j], cv2.COLORMAP_HOT)
-    dst = cv2.addWeighted( img2, alpha, grayImage, beta, 0.0)
-    images_lowfreq.append(dst)
+
+
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.animation as manimation
+import os, glob, numpy as np, matplotlib.pyplot as plt, scipy
+import imageio
+from moviepy.editor import VideoFileClip
+
+FFMpegWriter = manimation.writers['ffmpeg']
+metadata = dict(title='Movie Test', artist='Matplotlib',
+                comment='Movie support!')
+data0 = data[:, :, 0]    
+writer = FFMpegWriter(fps=15, metadata=metadata)
+
+for j in range(0,  len(range(1000, data.shape[2], 100))):   
+
+    images_snr.append(snr_matrix[:, :, j])
+fig = plt.figure()
+ax2=plt.subplot(122)
+lm = ax2.imshow(images_snr[0],  alpha = 1, cmap = 'hot' )
+ax1=plt.subplot(121)
+im = ax1.imshow(data[:, :, 0], cmap = 'gray')
+
+x=0
+c=1
+with writer.saving(fig, fname.replace(".avi", "_snr_std_square3_webannotation_")+str(int(freq-2))+'-'+str(int(freq+2))+'hz.mp4', 100):
+    for i in range(len(range(1000, data.shape[2], 100))-1):
+        x+=100
+        if x >1000:
+            
+            lm.set_data(images_snr[c])
+            #ln.set_data(pltsnr_20[:, :, c])
+            #lo.set_data(pltsnr_30[:, :, c])
+            #lp.set_data(pltsnr_60[:, :, c])
+            c=c+1
+        if x> data.shape[2]:
+            break
+        im.set_data(data[:, :, x])
+        
+        writer.grab_frame()
+        
+#for j in range(0,  len(range(1000, data.shape[2], 200))):
+#    img2 = cv2.applyColorMap(Low_freq[:, :, j], cv2.COLORMAP_HOT)
+#    dst = cv2.addWeighted( img2, alpha, grayImage, beta, 0.0)
+#    images_lowfreq.append(dst)
 
     
     
-for j in range(0, 91):   
-    img3 = cv2.applyColorMap(snr_matrix[:, :, j], cv2.COLORMAP_HOT)
-    dst3 = cv2.addWeighted( img3, alpha, grayImage, beta, 0.0)
-    images_snr.append(dst3)
+#for j in range(0,  len(range(1000, data.shape[2], 200))):   
+#    img3 = cv2.applyColorMap(snr_matrix[:, :, j], cv2.COLORMAP_HOT)
+#    dst3 = cv2.addWeighted( img3, alpha, grayImage, beta, 0.0)
+#    images_snr.append(dst3)
 
-fourcc = VideoWriter_fourcc(*'MP42')
-video=cv2.VideoWriter('400_lowfreq_square3_webannotation.avi',fourcc,1,(1024,1024))
-video3=cv2.VideoWriter('400_snr_std_square3_webannotation.avi',fourcc,1,(1024,1024))
+#fourcc = VideoWriter_fourcc(*'MP42')
+#video=cv2.VideoWriter('200_lowfreq_segment_webannotation.avi',fourcc,1,(data.shape[0], data.shape[1]))
+#video3=cv2.VideoWriter(fname.replace(".avi", "_snr_std_square3_webannotation_")+str(int(freq-2))+'-'+str(int(freq+2))+'hz.avi',fourcc,1,(data.shape[0], data.shape[1]))
 
-for j in range(0,len(images_snr)):
-    video.write(images_lowfreq[j])
-    video3.write(images_snr[j])
+#for j in range(0,len(images_snr)):
+#    video.write(images_lowfreq[j])
+#    video3.write(images_snr[j])
 
-cv2.destroyAllWindows()
-video.release()
-video3.release()
+#cv2.destroyAllWindows()
+#video.release()
+#video3.release()

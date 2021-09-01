@@ -6,8 +6,8 @@ Created on Sun Dec  6 10:04:17 2020
 """
 
 import numpy as np
-fname = 'video/web_flies_1-013.avi'
-data = np.load('result/web_flies_1-013_powerratio_sliding_10-20.npz')
+fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/photron sa5/0220_F2.7_200_400_3_sa5_C001H001S0001.avi'
+data = np.load('C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/0220_F2.7_200_400_3_sa5_180-220.npz')
 
 variance= data['variance']
 variance_nopeak = data['variance_nopeak']
@@ -80,15 +80,14 @@ fig = plt.figure()
 ax2=plt.subplot(122)
 
 
-scale = 100
+scale = 200
 
-mean_power = variance/mean_power
-lm = ax2.imshow(mean_power[:, :, 0], cmap =red_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
+#mean_power = variance/mean_power
+lm = ax2.imshow(maximum[:, :, 0], cmap =red_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
 #ln = ax2.imshow(pltsnr_20[:, :, 0], cmap = blue_cmp,interpolation ='nearest', alpha = 1, vmax = 20, vmin = 0)
 #lo = ax2.imshow(pltsnr_30[:, :, 0], cmap = green_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
 #lp = ax2.imshow(pltsnr_60[:, :, 0], cmap = yellow_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
 ax2.imshow(data0, cmap = gray_cmp, alpha = 0.3)
-
 
 ax1=plt.subplot(121)
 im = ax1.imshow(data[:, :, 0], cmap = 'gray')
@@ -98,10 +97,10 @@ x=0
 c=1
 with writer.saving(fig, "test.mp4", 100):
     for i in range(data.shape[2]):
-        x+=100
+        x+=10
         if x >1000:
             
-            lm.set_data(mean_power[:, :, c])
+            lm.set_data(maximum[:, :, c])
             #ln.set_data(pltsnr_20[:, :, c])
             #lo.set_data(pltsnr_30[:, :, c])
             #lp.set_data(pltsnr_60[:, :, c])
@@ -115,6 +114,6 @@ with writer.saving(fig, "test.mp4", 100):
         writer.grab_frame()
 
 #plt.figure()
-#plt.imshow(variance[:, :, 0], cmap =green_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
+#plt.imshow(maximum[:, :, 60], cmap =red_cmp,interpolation ='nearest', alpha = 1, vmax = 20000, vmin = 0)
 #plt.colorbar()
 #plt.show()

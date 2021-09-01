@@ -21,9 +21,12 @@ from matplotlib.colors import ListedColormap,LinearSegmentedColormap
 
 
 ### Load the file for web with spider or flies
-filename = 'video/web_flies_1-013.xyt.npy.txt'
-fname = 'video/web_flies_1-013.avi'
+#filename = 'video/web_flies_plucking-010.xyt.npy.txt'
+#fname = 'video/web_flies_plucking-010.avi'
+#fnameFFT = fname + '.fft.npy'
 
+fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/photron sa5/0220_F2.7_200_300_3_sa5_C001H001S0001.avi'
+filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/photron sa5/0220_F2.7_200_3_sa5_C001H001S0001.xyt.txt'
 fnameFFT = fname + '.fft.npy'
 
 
@@ -49,6 +52,10 @@ if fname == 'video/web_whitenoise-006.avi':
     data = data[:, :, 0:8609]
 elif fname == 'video/web_baseline-005.avi': 
     data = data[:, :, 0:8589]
+elif fname == 'video/web_flies_1-013.avi':
+    data = data[:, :, 0:21494]
+    
+    
 
 
 ## Load the basline video file
@@ -109,7 +116,7 @@ data0 = data[:, :, 0]
 # due to memory error, I use only 10000 frames
 data = data[:, :, 0:10000]
 
-pltsnr_10 =  np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
+pltsnr_10 =  np.empty((1024, 1024, len(range(1000, data.shape[2], 10))))
 #pltsnr_20 =  np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
 #pltsnr_30 =  np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
 #pltsnr_60 =  np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
@@ -146,15 +153,15 @@ gray[:, 2] = np.linspace(1, 169/256, N)  # B = 11
 gray_cmp = ListedColormap(gray)
 
 
-variance =  np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
-mean_power = np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
-maximum = np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
-variance_nopeak = np.empty((1024, 1024, len(range(1000, data.shape[2], 100))))
+variance =  np.empty((1024, 1024, len(range(1000, data.shape[2], 10))))
+mean_power = np.empty((1024, 1024, len(range(1000, data.shape[2], 10))))
+maximum = np.empty((1024, 1024, len(range(1000, data.shape[2], 10))))
+variance_nopeak = np.empty((1024, 1024, len(range(1000, data.shape[2], 10))))
 
 c=0
-for t in range(1000, data.shape[2], 100):
+for t in range(500, data.shape[2]-500, 10):
     
-    dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-1000):t]))
+    dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-500):(t+500)]))
     #dataFFT_baseline = np.abs(scipy.fft(baseline_data[res[0], res[1], (t-1000):t]))
     
     
@@ -191,8 +198,8 @@ for t in range(1000, data.shape[2], 100):
                     #snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
             continue
       
-        idx_i = (np.abs(ff - 10)).argmin()
-        idx_e =  (np.abs(ff - 20)).argmin()
+        idx_i = (np.abs(ff - 180)).argmin()
+        idx_e =  (np.abs(ff - 220)).argmin()
         #if freq == 500:
         #    idx_e =  (np.abs(ff - (freq))).argmin()
         #else:
@@ -209,8 +216,8 @@ for t in range(1000, data.shape[2], 100):
         temp2 = np.array(temp2)
         variance_nopeak[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2), c] = temp2.var()
         
-        idx_i = (np.abs(ff - 80)).argmin()
-        idx_e =  (np.abs(ff -100)).argmin()
+        idx_i = (np.abs(ff - 450)).argmin()
+        idx_e =  (np.abs(ff -490)).argmin()
         temp2 = means[idx_i:idx_e]
 
         if np.isnan(temp2_max/temp2.std()):
@@ -280,53 +287,4 @@ for t in range(1000, data.shape[2], 100):
     
     c=c+1
 
-np.savez('web_flies_1-013_sliding_10-20', maximum= maximum, mean_power= mean_power, variance = variance, variance_nopeak= variance_nopeak, pltsnr = pltsnr_10, fname= fname)
-###Export the result as a video with spider moving and the SNR map
-import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.animation as manimation
-import os, glob, numpy as np, matplotlib.pyplot as plt, scipy
-import imageio
-from moviepy.editor import VideoFileClip
-
-FFMpegWriter = manimation.writers['ffmpeg']
-metadata = dict(title='Movie Test', artist='Matplotlib',
-                comment='Movie support!')
-writer = FFMpegWriter(fps=15, metadata=metadata)
-#data = np.load(fname + '.npy')
-
-fig = plt.figure()
-ax2=plt.subplot(122)
-scale = 50
-lm = ax2.imshow(pltsnr_10[:, :, 0], cmap =red_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
-#ln = ax2.imshow(pltsnr_20[:, :, 0], cmap = blue_cmp,interpolation ='nearest', alpha = 1, vmax = 20, vmin = 0)
-#lo = ax2.imshow(pltsnr_30[:, :, 0], cmap = green_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
-#lp = ax2.imshow(pltsnr_60[:, :, 0], cmap = yellow_cmp,interpolation ='nearest', alpha = 1, vmax = scale, vmin = 0)
-ax2.imshow(data0, cmap = gray_cmp, alpha = 0.3)
-
-
-ax1=plt.subplot(121)
-im = ax1.imshow(data[:, :, 0], cmap = 'gray')
-
-
-x=0
-c=1
-#with writer.saving(fig, "web_flies_plucking-010_10-20_snr.mp4", 100):
-#    for i in range(data.shape[2]):
-#        x+=100
-#        if x >1000:
-            
-#            lm.set_data(pltsnr_10[:, :, c])
-            #ln.set_data(pltsnr_20[:, :, c])
-            #lo.set_data(pltsnr_30[:, :, c])
-            #lp.set_data(pltsnr_60[:, :, c])
-#            c=c+1
-#        if c> pltsnr_10.shape[2]:
-#            break
-#        if x> data.shape[2]:
-#            break
-#        im.set_data(data[:, :, x])
-        
-#        writer.grab_frame()
-        
+np.savez('0220_F2.7_200_300_3_sa5_180-220', maximum= maximum, mean_power= mean_power, variance = variance, variance_nopeak= variance_nopeak, pltsnr = pltsnr_10, fname= fname)
