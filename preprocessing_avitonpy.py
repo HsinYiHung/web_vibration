@@ -23,7 +23,7 @@ from skimage.morphology import square
 
 # Load the spider/flies file
 #fname = 'video/web_flies_1-013.avi'
-fname = 'Y:/HsinYi/web_vibration/083121/web_old/0831_spider003_prey/0831_spider003_prey.avi'
+fname = 'Y:/HsinYi/web_vibration/081421/0814_spider003_piezo_112_144_50hz/0814_spider003_piezo_112_144_50hz.avi'
 #fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.avi'
 
 ### Convert the video to python data
@@ -42,6 +42,6 @@ else:
         else:
             data[:, :, idx] = np.mean( np.transpose(frame, (1, 0, 2)), axis = 2)
         idx += 1
-    #np.save(fname.replace(".avi", ".xyt") + '.npy', data)
+    np.save(fname.replace(".avi", ".xyt") + '.npy', data)
     #np.save('C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey_top_C001H001S0001.xyt.npy', data)
-    np.save('C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0831_spider003_prey.xyt.npy', data)
+    #np.save('C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0831_spider003_prey.xyt.npy', data)

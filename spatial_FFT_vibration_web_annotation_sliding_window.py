@@ -29,11 +29,13 @@ freq=20
 #fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey3_top_C001H001S0001.avi'
 #filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey3_top_C001H001S0001.xyt.npy.txt'
 
-#fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0601_spider002_control_air_C001H001S0001.avi'
-#filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0601_spider002_control_air_C001H001S0001.xyt.npy.txt'
-fname = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_spider_prey/0701_spider003_web3_spider_prey.avi'
-filename = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_spider_prey/0701_spider003_web3_spider_prey.xyt.npy.txt'
 
+fname = 'Y:/HsinYi/web_vibration/090621/piezo/0906_spider003_piezo_112_144_10-50hz/0906_spider003_piezo_112_144_10-50hz.avi'
+
+filename = 'Y:/HsinYi/web_vibration/090621/piezo/0906_spider003_piezo_112_144_10-50hz/0906_spider003_piezo_112_144_10-50hz.xyt.npy.txt'
+
+#fname = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web2_prey/0701_spider003_web2_prey.avi'
+#filename ='Y:/HsinYi/web_vibration/070121/0701_spider003_web2_prey/0701_spider003_web2_prey.xyt.npy.txt'
 annotations = loadAnnotations(filename)
 
 fnameFFT = fname.replace(".avi", ".xyt")  + '.fft.npy'
@@ -76,8 +78,7 @@ webmask = skimage.morphology.dilation(webmask, square(3))
 ### Extract the web index
 res = np.where(webmask == True)
 res_origin = np.where(webmask_origin==True)
-images_snr =[]
-images_lowfreq =[]
+
 img = (webmask).astype(float)
 img = img *255
 img = img.astype(np.uint8)
@@ -86,6 +87,7 @@ alpha = 0.8
 beta = ( 1.0 - alpha );
 snr_matrix = np.zeros((data.shape[0], data.shape[1], len(range(1000, data.shape[2], 100))))
 Low_freq = np.zeros((data.shape[0], data.shape[1], len(range(1000, data.shape[2], 100))))
+AUC = np.zeros((data.shape[0], data.shape[1], len(range(1000, data.shape[2], 100))))
 c=0
 for t in range(1000, data.shape[2], 100):
     dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-1000):t]))
@@ -93,9 +95,9 @@ for t in range(1000, data.shape[2], 100):
     dataFFT[:] = np.nan
     dataFFT[res[0], res[1]] = dataFFT_web
     ff = np.fft.fftfreq(dataFFT_web.shape[1], 0.001)
-    snr = np.zeros((data.shape[0], data.shape[1]))
-    low_freq = np.zeros((data.shape[0], data.shape[1]))
-    
+    #snr = np.zeros((data.shape[0], data.shape[1]))
+    #low_freq = np.zeros((data.shape[0], data.shape[1]))
+    auc_short = np.zeros((data.shape[0], data.shape[1]))
     #### This block is the code for averaging fft alone the line
     for j in range(len(res_origin[0])):
         x_idx = res_origin[0][j]
@@ -105,22 +107,23 @@ for t in range(1000, data.shape[2], 100):
         if math.isnan(means[0]):
                 #snr[x_idx: (x_idx + step), y_idx: (y_idx + step)] = np.nan
             continue
-        low_freq[(x_idx-1): (x_idx + 2), (y_idx-1): (y_idx + 2)] = np.mean(means[1:100])
+        #low_freq[(x_idx-1): (x_idx + 2), (y_idx-1): (y_idx + 2)] = np.mean(means[1:100])
         idx_i = (np.abs(ff - (freq-2))).argmin()
         if freq == 500:
             idx_e =  (np.abs(ff - (freq))).argmin()
         else:
             idx_e =  (np.abs(ff - (freq+2))).argmin()
         temp = means[idx_i:idx_e]
+        auc_short[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)]  = sum(means[idx_i:idx_e])
         temp2 = list(temp)
         temp2_max = temp.max()
         temp2.remove(temp.max())
         temp2 = np.array(temp2)
         if np.isnan(temp2_max/temp2.std()):
             continue
-        snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.std()
+        #snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.std()
         #exclude the extreme value
-        snr[np.where(snr>100)] =0
+        #snr[np.where(snr>100)] =0
     #### This block is the code for calculating the snr and low frequency for dilated images
     #idx_i = (np.abs(ff - (freq-100))).argmin()
     #idx_e =  (np.abs(ff - (freq+100))).argmin()
@@ -135,29 +138,41 @@ for t in range(1000, data.shape[2], 100):
     #snr = np.nan_to_num(snr, 1)
     #snr[np.where(snr>1)] =1
     #low_freq[res[0], res[1]] = np.mean(dataFFT_web[:, 1:1000], axis =1)
-    
-    snr_matrix[:, :, c] = snr
-    Low_freq[:, :, c] = low_freq
+
+    AUC[:, :, c] = auc_short
+    #snr_matrix[:, :, c] = snr
+    #Low_freq[:, :, c] = low_freq
     c=c+1
+    
+#snr= np.copy(snr_matrix)
+#np.save(fname.replace(".avi", "_snr_std_square3_webannotation_")+str(int(freq-2))+'-'+str(int(freq+2))+'hz.npy', snr)
 
-snr= np.copy(snr_matrix)
-np.save(fname.replace(".avi", "_snr_std_square3_webannotation_")+str(int(freq-2))+'-'+str(int(freq+2))+'hz.npy', snr)
+#snr_std = np.copy(snr_matrix)
+#snr_std[np.where(snr_std ==0)] = np.nan
+#snr_std = np.nanmean(np.nanmean(snr_std, axis =0), axis =0)
+#print('snr mean = ' + str(np.nanmean(snr_std)))
+#print('snr std = ' + str(stats.sem(snr_std, axis=None)))
 
-snr_std = np.copy(snr_matrix)
-snr_std[np.where(snr_std ==0)] = np.nan
-snr_std = np.nanmean(np.nanmean(snr_std, axis =0), axis =0)
-print('snr mean = ' + str(np.nanmean(snr_std)))
-print('snr std = ' + str(stats.sem(snr_std, axis=None)))
+#snr_matrix[np.isnan(snr_matrix)]=0
+#print('SNR max = ' + str(snr_matrix.max()))
+#snr_matrix[np.where(snr_matrix>20)]=20
+#snr_matrix = snr_matrix/snr_matrix.max()*255
+#snr_matrix = snr_matrix.astype(np.uint8)
 
-snr_matrix[np.isnan(snr_matrix)]=0
-print('SNR max = ' + str(snr_matrix.max()))
-snr_matrix[np.where(snr_matrix>20)]=20
-snr_matrix = snr_matrix/snr_matrix.max()*255
-snr_matrix = snr_matrix.astype(np.uint8)
+#print('Low freq max = ' + str(Low_freq.max()))
+#Low_freq = Low_freq/Low_freq.max()*255
+#Low_freq = Low_freq.astype(np.uint8)
 
-print('Low freq max = ' + str(Low_freq.max()))
-Low_freq = Low_freq/Low_freq.max()*255
-Low_freq = Low_freq.astype(np.uint8)
+auc_map = np.copy(AUC)
+auc_map[np.isnan(auc_map)]=0
+print('AUC max = ' + str(auc_map.max()))
+
+auc_map = np.copy(AUC)
+auc_map[np.where(auc_map>120)]=120
+auc_map = auc_map/auc_map.max()*255
+auc_map = auc_map.astype(np.uint8)
+plt.imshow(auc_map[:,:,0], cmap = 'hot')
+plt.colorbar()
 
 
 import numpy as np
@@ -167,7 +182,8 @@ import matplotlib.animation as manimation
 import os, glob, numpy as np, matplotlib.pyplot as plt, scipy
 import imageio
 from moviepy.editor import VideoFileClip
-
+images_snr =[]
+images_auc =[]
 FFMpegWriter = manimation.writers['ffmpeg']
 metadata = dict(title='Movie Test', artist='Matplotlib',
                 comment='Movie support!')
@@ -177,12 +193,15 @@ writer = FFMpegWriter(fps=15, metadata=metadata)
 for j in range(0,  len(range(1000, data.shape[2], 100))):   
 
     images_snr.append(snr_matrix[:, :, j])
+    images_auc.append(auc_map[:, :, j])
+    
+    
+    
 fig = plt.figure()
 ax2=plt.subplot(122)
 lm = ax2.imshow(images_snr[0],  alpha = 1, cmap = 'hot' )
 ax1=plt.subplot(121)
 im = ax1.imshow(data[:, :, 0], cmap = 'gray')
-
 x=0
 c=1
 with writer.saving(fig, fname.replace(".avi", "_snr_std_square3_webannotation_")+str(int(freq-2))+'-'+str(int(freq+2))+'hz.mp4', 100):
@@ -201,6 +220,32 @@ with writer.saving(fig, fname.replace(".avi", "_snr_std_square3_webannotation_")
         
         writer.grab_frame()
         
+        
+        
+        
+fig = plt.figure()
+ax2=plt.subplot(122)
+lm = ax2.imshow(images_auc[0],  alpha = 1, cmap = 'hot' )
+ax1=plt.subplot(121)
+im = ax1.imshow(data[:, :, 0], cmap = 'gray')
+ 
+x=0
+c=1
+with writer.saving(fig, fname.replace(".avi", "_auc_square3_webannotation_")+'4-6hz.mp4', 100):
+    for i in range(len(range(1000, data.shape[2], 100))-1):
+        x+=100
+        if x >1000:
+            
+            lm.set_data(images_auc[c])
+            #ln.set_data(pltsnr_20[:, :, c])
+            #lo.set_data(pltsnr_30[:, :, c])
+            #lp.set_data(pltsnr_60[:, :, c])
+            c=c+1
+        if x> data.shape[2]:
+            break
+        im.set_data(data[:, :, x])
+        
+        writer.grab_frame()
 #for j in range(0,  len(range(1000, data.shape[2], 200))):
 #    img2 = cv2.applyColorMap(Low_freq[:, :, j], cv2.COLORMAP_HOT)
 #    dst = cv2.addWeighted( img2, alpha, grayImage, beta, 0.0)

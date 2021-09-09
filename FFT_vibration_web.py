@@ -15,13 +15,13 @@ from skimage.morphology import square
 #fname = fname[0]
 
 # Load the spider/flies file
-#fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_control_air_2_C001H001S0001/0606_spider001_control_air_2_C001H001S0001.avi'
-#filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_control_air_2_C001H001S0001/0606_spider001_control_air_2_C001H001S0001.xyt.npy.txt'
+fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0814_spider003_spider_prey.avi'
+filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0814_spider003_spider_prey.xyt.npy.txt'
 
-fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey_top_C001H001S0001.avi'
-filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey_top_C001H001S0001.xyt.npy.txt'
-fname = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.avi'
-filename = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.xyt.npy.txt'
+#fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey_top_C001H001S0001.avi'
+#filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey_top_C001H001S0001.xyt.npy.txt'
+#fname = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.avi'
+#filename = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.xyt.npy.txt'
 
 #fname = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.avi'
 #filename = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.xyt.npy.txt'
@@ -78,10 +78,10 @@ elif fname == 'video/web_flies_1-013.avi':
 
 ### Get web by annotaation
 annotations = loadAnnotations(filename)
-    
+
 lines = annotations[0][3]
 points = annotations[0][1]
-    
+
 webmask = np.full((np.size(data,0), np.size(data,1)), False, dtype=np.bool)
 for line in lines:
     rr, cc, val = skimage.draw.line_aa(line[0], line[1], line[2], line[3])
@@ -94,14 +94,14 @@ for line in lines:
     #cc  = np.delete(cc, idx)
     #rr  = np.delete(rr, idx)
     webmask[rr, cc] = True
-    
+
 for point in points:
     if point[0]>=1024 or point[1]>=1024:
         continue
     webmask[point[0], point[1]] = True
-    
+
 webmask = skimage.morphology.dilation(webmask, square(3))
-    
+
 res = np.where(webmask == True)
 
 

@@ -21,8 +21,13 @@ sampling_frequency=1000
 #fname = fname[0]
 #annotations = loadAnnotations(filename[0])
 
-fname = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey/0814_spider003_spider_prey.avi'
-filename = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.xyt.npy.txt'
+#fname ='Y:/HsinYi/web_vibration/070121/0701_spider003_web2_prey/0701_spider003_web2_prey.avi'
+#filename ='Y:/HsinYi/web_vibration/070121/0701_spider003_web2_prey/0701_spider003_web2_prey.xyt.npy.txt'
+
+
+fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0811_spider001_web_piezo_112_144_30hz.avi'
+filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0811_spider001_web_piezo_112_144_30hz.xyt.npy.txt'
+
 
 annotations = loadAnnotations(filename)
 
@@ -30,19 +35,19 @@ fnameFFT = fname.replace(".avi", ".xyt")  + '.fft.npy'
 
 ### Convert the video to python data
 
-#if os.path.exists(fname.replace(".avi", ".xyt") + '.npy'):
-#    data = np.load(fname.replace(".avi", ".xyt") + '.npy')
-#else:
-video = VideoFileClip(fname)
-r = imageio.get_reader(fname)
+if os.path.exists(fname.replace(".avi", ".xyt") + '.npy'):
+    data = np.load(fname.replace(".avi", ".xyt") + '.npy')
+else:
+    video = VideoFileClip(fname)
+    r = imageio.get_reader(fname)
     
-data = np.zeros((video.size[0], video.size[1], video.reader.nframes), dtype=np.uint8)
-idx = 0
-for frame in r.iter_data():
-    data[:, :, idx] = np.mean(frame, axis = 2)
-    idx += 1
-#np.save(fname.replace(".avi", ".xyt") + '.npy', data)
-np.save(filename, data)
+    data = np.zeros((video.size[0], video.size[1], video.reader.nframes), dtype=np.uint8)
+    idx = 0
+    for frame in r.iter_data():
+        data[:, :, idx] = np.mean(frame, axis = 2)
+        idx += 1
+    #np.save(fname.replace(".avi", ".xyt") + '.npy', data)
+
 #data = data[:, :, :-1] ###The last frame is missing in the some recordings
     
     
@@ -62,13 +67,13 @@ np.save(filename, data)
 #del hub_idx
     
 
-    
 lines = annotations[0][3]
 points = annotations[0][1]
     
 webmask = np.full(( data.shape[0],  data.shape[1]), False, dtype=np.bool)
 for line in lines:
     rr, cc, val = skimage.draw.line_aa(line[0], line[1], line[2], line[3])
+
     webmask[rr, cc] = True
     
 for point in points:
@@ -84,14 +89,15 @@ webmask = skimage.morphology.dilation(webmask, square(3))
 res = np.where(webmask == True)
 res_origin = np.where(webmask_origin==True )
     
-    
+
+
 dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], :]))
-dataFFT =  np.empty((data.shape[0],  data.shape[1], data.shape[2]))
+dataFFT =  np.copy(data)
 dataFFT[:] = np.nan
 dataFFT[res[0], res[1]] = dataFFT_web
 ff = np.fft.fftfreq(dataFFT_web.shape[1], 1/sampling_frequency)
 
-for freq in range(10, 100, 100):
+for freq in range(30, 100, 100):
 
     images_snr =[]
     images_lowfreq =[]
@@ -100,7 +106,8 @@ for freq in range(10, 100, 100):
     img = img.astype(np.uint8)
     grayImage = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     alpha = 0.8
-    beta = ( 1.0 - alpha ); 
+    beta = ( 1.0 - alpha );
+    AUC = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
     snr = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
     pixel_intensity = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
     maximum = np.zeros((dataFFT.shape[0], dataFFT.shape[1]))
@@ -117,17 +124,22 @@ for freq in range(10, 100, 100):
             continue
       
         idx_i = (np.abs(ff - (freq-2))).argmin()
+        #idx_i = (np.abs(ff - 4.5798)).argmin()
         if freq == 500:
             idx_e =  (np.abs(ff - (freq))).argmin()
         else:
             idx_e =  (np.abs(ff - (freq+2))).argmin()
+            #idx_e = (np.abs(ff - 6.4117)).argmin()
+
         temp = means[idx_i:idx_e]
+        auc_short = sum(temp)
         temp2 = list(temp)
         temp2_max = temp.max()
         temp2.remove(temp.max())
         temp2 = np.array(temp2)
         if np.isnan(temp2_max/temp2.std()):
             continue
+        AUC[(x_idx - 1): (x_idx + 2), (y_idx - 1): (y_idx + 2)] =  auc_short
         snr[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max/temp2.std()
         pixel_intensity[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = np.mean(data[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2), :])
         maximum[(x_idx-1): (x_idx + 2),(y_idx-1): (y_idx + 2)] = temp2_max
@@ -170,6 +182,16 @@ for freq in range(10, 100, 100):
     plt.figure()
     plt.imshow(grayImage, cmap='gray') # interpolation='none'
     plt.imshow(snr_plot, cmap = 'hot', alpha = alpha)
+    plt.colorbar()
+    plt.savefig(filename)
+
+    # Filename 
+    filename = fname.replace(".avi", "_auc_square3_webannotation_")+'4-9hz.jpg'
+    auc_plot = np.copy(AUC)
+    #auc_plot[np.where(auc_plot>1000)] =1000
+    plt.figure()
+    plt.imshow(grayImage, cmap='gray') # interpolation='none'
+    plt.imshow(auc_plot, cmap = 'hot', alpha = alpha)
     plt.colorbar()
     plt.savefig(filename)
 
