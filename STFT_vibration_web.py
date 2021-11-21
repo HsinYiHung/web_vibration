@@ -3,6 +3,7 @@ import imageio
 from moviepy.editor import VideoFileClip
 import cv2
 from scipy import stats
+from scipy import fft
 ### Load the file
 
 # Load the speaker file
@@ -12,8 +13,8 @@ from scipy import stats
 #fname = fname[0]
 
 # Load the spider/flies file
-fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0424_200_300_hz_2pulse_8_C001H001S0001.avi'
-
+fname = 'Z:/HsinYi/web_vibration/102121/102121_spider_prey/102121_spider_prey.avi'
+filename = 'Z:/HsinYi/web_vibration/102121/102121_spider_prey/102121_spider_prey.xyt.npy.txt'
 
 
 ### Convert the video to python data
@@ -91,7 +92,7 @@ v_spec = np.zeros((1000, len(range(1000, data.shape[2], 10))))
 c=0
 for t in range(500, (data.shape[2]-500), 10):
 #for t in range(4000, 6000, 10):
-    dataFFT = np.abs(scipy.fft(data[res[0], res[1], (t-500):(t+500)]))
+    dataFFT = np.abs(scipy.fft.fft(data[res[0], res[1], (t-500):(t+500)]))
     f_spec[:,c] = np.mean(dataFFT, axis =0)
     z_score = stats.zscore(dataFFT, axis =0)
     z_spec[:,c] = np.mean(np.abs(z_score), axis =0)

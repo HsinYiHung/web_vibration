@@ -14,8 +14,8 @@ sampling_frequency=1000
 
 #Set the frequency window
 freq=8.359
-freq_m1 = 5.038360242757356
-freq_m2 = 14.08450704225352
+freq_m1 =4
+freq_m2 = 11
 
 ### Load files
 
@@ -27,8 +27,13 @@ freq_m2 = 14.08450704225352
 #fnameFFT = fname + '.fft.npy'
 
 
-fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/test_camera_trigger_5hz.avi'
-filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/test_camera_trigger_5hz.xyt.npy.txt'
+#fname = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.avi'
+#filename = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.xyt.npy.txt'
+#fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_75_182_with_pulses.avi'
+#filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_75_182_with_pulses.xyt.npy.txt'
+
+fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.avi'
+filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.xyt.npy.txt'
 
 
 #fname = 'Y:/HsinYi/web_vibration/090621/piezo/0906_spider003_piezo_112_144_10-50hz/0906_spider003_piezo_112_144_10-50hz.avi'
@@ -88,7 +93,7 @@ beta = ( 1.0 - alpha );
 AUC = np.zeros((data.shape[0], data.shape[1], len(range(1000, data.shape[2], 100))))
 c=0
 for t in range(1000, data.shape[2], 100):
-    dataFFT_web = np.abs(scipy.fft(data[res[0], res[1], (t-1000):t]))
+    dataFFT_web = np.abs(scipy.fft.fft(data[res[0], res[1], (t-1000):t]))
     dataFFT =  np.empty((data.shape[0], data.shape[1],1000))
     dataFFT[:] = np.nan
     dataFFT[res[0], res[1]] = dataFFT_web
@@ -143,11 +148,11 @@ for t in range(1000, data.shape[2], 100):
 auc_map = np.copy(AUC)
 auc_map[np.isnan(auc_map)]=0
 print('AUC max = ' + str(auc_map.max()))
-auc_map[np.where(auc_map>120)]=120
+#auc_map[np.where(auc_map>40000)]=40000
 auc_map = auc_map/auc_map.max()*255
 auc_map = auc_map.astype(np.uint8)
-plt.imshow(auc_map[:,:,0], cmap = 'hot')
-plt.colorbar()
+#plt.imshow(auc_map[:,:,0], cmap = 'hot')
+#plt.colorbar()
 
 
 import numpy as np
@@ -180,7 +185,7 @@ im = ax1.imshow(data[:, :, 0], cmap = 'gray')
  
 x=0
 c=1
-with writer.saving(fig, fname.replace(".avi", "_auc_square3_webannotation_")+'5-14hz.mp4', 100):
+with writer.saving(fig, fname.replace(".avi", "_auc_square3_webannotation_")+'4-11hz.mp4', 100):
     for i in range(len(range(1000, data.shape[2], 100))-1):
         x+=100
         if x >1000:

@@ -15,13 +15,13 @@ from skimage.morphology import square
 #fname = fname[0]
 
 # Load the spider/flies file
-fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0814_spider003_spider_prey.avi'
-filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/Team_Spider/0814_spider003_spider_prey.xyt.npy.txt'
+#fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.avi'
+#filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.xyt.npy.txt'
 
-#fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey_top_C001H001S0001.avi'
-#filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/0619_spider002_spider_prey_top_C001H001S0001.xyt.npy.txt'
-#fname = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.avi'
-#filename = 'Y:/HsinYi/web_vibration/081421/0814_spider003_spider_prey.xyt.npy.txt'
+#fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_0_107_with_pulses.avi'
+#filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_0_107_with_pulses.xyt.npy.txt'
+fname = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.avi'
+filename = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.xyt.npy.txt'
 
 #fname = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.avi'
 #filename = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.xyt.npy.txt'
@@ -101,13 +101,14 @@ for point in points:
     webmask[point[0], point[1]] = True
 
 webmask = skimage.morphology.dilation(webmask, square(3))
-
+#webmask[0:800, :]= False
+#webmask[800:1280, 0:500]= False
 res = np.where(webmask == True)
 
 
 
 ### Apply FFT to data
-dataFFT = np.abs(scipy.fft(data[res[0], res[1], :]))
+dataFFT = np.abs(scipy.fft.fft(data[res[0], res[1], :]))
 
 ff = np.fft.fftfreq(dataFFT.shape[1], 0.001)
 plt.figure()
@@ -116,3 +117,8 @@ plt.savefig(fname.replace('.avi', '_fft.png'))
 plt.figure()
 plt.plot(ff[(ff > 0)&(ff<100)], np.mean(dataFFT, axis=0)[(ff > 0)&(ff<100)])
 plt.savefig(fname.replace('.avi', '_2_fft.png'))
+plt.figure()
+plt.plot(ff[(ff > 1)&(ff<100)], np.mean(dataFFT, axis=0)[(ff > 1)&(ff<100)])
+plt.savefig(fname.replace('.avi', '_3_fft.png'))
+
+np.savez(fname.replace('.avi', '_fft'), ff=ff, dataFFT = np.abs(scipy.fft.fft(data[res[0], res[1], :])))
