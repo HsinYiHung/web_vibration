@@ -14,8 +14,8 @@ sampling_frequency=1000
 
 #Set the frequency window
 freq=8.359
-freq_m1 =4
-freq_m2 = 11
+freq_m1 =7
+freq_m2 = 12
 
 ### Load files
 
@@ -27,13 +27,13 @@ freq_m2 = 11
 #fnameFFT = fname + '.fft.npy'
 
 
-#fname = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.avi'
-#filename = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.xyt.npy.txt'
-#fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_75_182_with_pulses.avi'
-#filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_75_182_with_pulses.xyt.npy.txt'
+#fname = 'Z:/HsinYi/web_vibration/061921/0619_spider002_spider_prey3_top_C001H001S0001.avi'
+#filename = 'Z:/HsinYi/web_vibration/061921/0619_spider002_spider_prey3_top_C001H001S0001.xyt.npy.txt'
+fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_spider_5hz_75_182_with_pulses.avi'
+filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_spider_5hz_75_182_with_pulses.xyt.npy.txt'
 
-fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.avi'
-filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.xyt.npy.txt'
+#fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_prey_C001H001S0001/0606_spider001_spider_prey_C001H001S0001.avi'
+#filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_prey_C001H001S0001/0606_spider001_spider_prey_C001H001S0001.xyt.npy.txt'
 
 
 #fname = 'Y:/HsinYi/web_vibration/090621/piezo/0906_spider003_piezo_112_144_10-50hz/0906_spider003_piezo_112_144_10-50hz.avi'
@@ -144,11 +144,11 @@ for t in range(1000, data.shape[2], 100):
 
     c=c+1
     
-
+np.savez(fname.replace('.avi', '_')+str(freq_m1)+'-'+str(freq_m2)+'hz_auc', AUC=AUC)
 auc_map = np.copy(AUC)
 auc_map[np.isnan(auc_map)]=0
 print('AUC max = ' + str(auc_map.max()))
-#auc_map[np.where(auc_map>40000)]=40000
+#auc_map[np.where(auc_map>5000)]=5000
 auc_map = auc_map/auc_map.max()*255
 auc_map = auc_map.astype(np.uint8)
 #plt.imshow(auc_map[:,:,0], cmap = 'hot')
@@ -185,7 +185,7 @@ im = ax1.imshow(data[:, :, 0], cmap = 'gray')
  
 x=0
 c=1
-with writer.saving(fig, fname.replace(".avi", "_auc_square3_webannotation_")+'4-11hz.mp4', 100):
+with writer.saving(fig, fname.replace(".avi", "_auc_square3_webannotation_")+str(freq_m1)+'-'+str(freq_m2)+'hz.mp4', 100):
     for i in range(len(range(1000, data.shape[2], 100))-1):
         x+=100
         if x >1000:
