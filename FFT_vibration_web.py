@@ -20,8 +20,8 @@ from skimage.morphology import square
 
 #fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_0_107_with_pulses.avi'
 #filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_piezo_5hz_0_107_with_pulses.xyt.npy.txt'
-fname = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.avi'
-filename = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_control_air/0701_spider003_web2_control_air.xyt.npy.txt'
+fname = '070121/0701_spider003_web2_prey/0701_spider003_web2_prey.avi'
+filename = '070121/0701_spider003_web2_prey/0701_spider003_web2_prey.xyt.npy.txt'
 
 #fname = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.avi'
 #filename = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.xyt.npy.txt'
