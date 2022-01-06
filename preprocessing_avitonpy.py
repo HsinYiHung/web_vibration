@@ -23,7 +23,7 @@ from skimage.morphology import square
 
 # Load the spider/flies file
 #fname = 'video/web_flies_1-013.avi'
-fname = 'Z:/HsinYi/web_vibration/110121/110121_piezo_5hz_0_107_with_pulses_2sdelayed/110121_piezo_5hz_0_107_with_pulses_2sdelayed.avi'
+fname = 'Z:/HsinYi/web_vibration/110821/1108_piezo_control/1108_piezo_control.avi'
 #fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_5_static_C001H001S0001/0606_spider001_spider_5_static_C001H001S0001.avi'
 
 ### Convert the video to python data

@@ -18,8 +18,8 @@ from skimage.morphology import square
 #fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_prey_C001H001S0001/0606_spider001_spider_prey_C001H001S0001.avi'
 #filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_prey_C001H001S0001/0606_spider001_spider_prey_C001H001S0001.xyt.npy.txt'
 
-fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_control_2.avi'
-filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_control_2.xyt.npy.txt'
+fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_prey.avi'
+filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_prey.xyt.npy.txt'
 #fname = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_prey/0701_spider003_web2_prey.avi'
 #filename = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_prey/0701_spider003_web2_prey.xyt.npy.txt'
 

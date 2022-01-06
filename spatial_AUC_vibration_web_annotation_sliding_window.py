@@ -14,8 +14,8 @@ sampling_frequency=1000
 
 #Set the frequency window
 freq=8.359
-freq_m1 =7
-freq_m2 = 12
+freq_m1 =27
+freq_m2 = 33
 
 ### Load files
 
@@ -29,11 +29,13 @@ freq_m2 = 12
 
 #fname = 'Z:/HsinYi/web_vibration/061921/0619_spider002_spider_prey3_top_C001H001S0001.avi'
 #filename = 'Z:/HsinYi/web_vibration/061921/0619_spider002_spider_prey3_top_C001H001S0001.xyt.npy.txt'
-fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_spider_5hz_75_182_with_pulses.avi'
-filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/102121_spider_5hz_75_182_with_pulses.xyt.npy.txt'
 
+fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_prey.avi'
+filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_prey.xyt.npy.txt'
 #fname = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_prey_C001H001S0001/0606_spider001_spider_prey_C001H001S0001.avi'
 #filename = 'C:/Users/Hsin-Yi/OneDrive - Johns Hopkins/Gordus lab/Chen_camera/white LED/0606_spider001_spider_prey_C001H001S0001/0606_spider001_spider_prey_C001H001S0001.xyt.npy.txt'
+#fname = 'Z:/HsinYi/web_vibration/102121/102121_spider_control/102121_spider_control.avi'
+#filename = 'Z:/HsinYi/web_vibration/102121/102121_spider_control/102121_spider_control.xyt.npy.txt'
 
 
 #fname = 'Y:/HsinYi/web_vibration/090621/piezo/0906_spider003_piezo_112_144_10-50hz/0906_spider003_piezo_112_144_10-50hz.avi'
@@ -148,7 +150,7 @@ np.savez(fname.replace('.avi', '_')+str(freq_m1)+'-'+str(freq_m2)+'hz_auc', AUC=
 auc_map = np.copy(AUC)
 auc_map[np.isnan(auc_map)]=0
 print('AUC max = ' + str(auc_map.max()))
-#auc_map[np.where(auc_map>5000)]=5000
+#auc_map[np.where(auc_map>500)]=500
 auc_map = auc_map/auc_map.max()*255
 auc_map = auc_map.astype(np.uint8)
 #plt.imshow(auc_map[:,:,0], cmap = 'hot')
