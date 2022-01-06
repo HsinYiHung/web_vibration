@@ -13,14 +13,16 @@ from scipy import fft
 #fname = fname[0]
 
 # Load the spider/flies file
-fname = 'Z:/HsinYi/web_vibration/102121/102121_spider_prey/102121_spider_prey.avi'
-filename = 'Z:/HsinYi/web_vibration/102121/102121_spider_prey/102121_spider_prey.xyt.npy.txt'
+#fname = 'Z:/HsinYi/web_vibration/102121/102121_piezo_5hz_75_182_with_pulses/102121_piezo_5hz_75_182_with_pulses.avi'
+#filename = 'Z:/HsinYi/web_vibration/102121/102121_piezo_5hz_75_182_with_pulses/102121_piezo_5hz_75_182_with_pulses.xyt.npy.txt'
 
+fname = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_prey.avi'
+filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_prey.xyt.npy.txt'
 
 ### Convert the video to python data
 
-if os.path.exists(fname + '.npy'):
-    data = np.load(fname + '.npy')
+if os.path.exists(fname.replace(".avi", ".xyt") + '.npy'):
+    data = np.load(fname.replace(".avi", ".xyt") + '.npy')
 else:
     video = VideoFileClip(fname)
     r = imageio.get_reader(fname)
@@ -112,9 +114,12 @@ t = np.array(t)
 
 ### Plot the power spectrum
 #f_idx =np.where((ff>= 350) & (ff<=500))
-f_idx =np.where((ff>= 0) & (ff<=500))
-img = plt.pcolormesh(t, ff[f_idx], f_spec[f_idx], vmax = 100)
+plt.figure()
+f_idx =np.where((ff>= 0) & (ff<=50))
+img = plt.pcolormesh(t, ff[f_idx], f_spec[f_idx], vmax = 3000)
 plt.colorbar()
+plt.savefig('test.png')
+
 plt.figure()
 img = plt.pcolormesh(t, ff[f_idx], z_spec[f_idx])
 plt.colorbar()
@@ -141,7 +146,7 @@ data = np.load(fname.replace(".avi", ".xyt") + '.npy')
 
 fig = plt.figure()
 ax2=plt.subplot(122)
-ax2.pcolormesh(t, ff[f_idx], f_spec[f_idx], vmin =0, vmax =100)
+ax2.pcolormesh(t, ff[f_idx], f_spec[f_idx], vmin =0, vmax =3000)
 #ax2.pcolormesh(t, ff[f_idx], f_spec[f_idx])
 
 
