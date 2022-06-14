@@ -24,7 +24,7 @@ filename = 'C:/Users/Hsin-Yi/Documents/GitHub/web_vibration/video/1101_spider_pr
 #filename = 'Z:/HsinYi/web_vibration/070121/0701_spider003_web2_prey/0701_spider003_web2_prey.xyt.npy.txt'
 
 #fname = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.avi'
-#filename = 'Y:/HsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.xyt.npy.txt'
+#filename = 'Y:/HbfsinYi/web_vibration/070121/0701_spider003_web3_control_spider/0701_spider003_web3_control_spider.xyt.npy.txt'
 fnameFFT = fname + '.fft.npy'
 
 
